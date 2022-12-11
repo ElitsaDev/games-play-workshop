@@ -5,25 +5,43 @@ export const Details = ({
     games,
     addComment
     }) => {
-    const { gameId } = useParams();
-    const [ comment, setComment ] = useState({
-        username: '',
-        comment: ''
-    });
+    
+        const { gameId } = useParams();
+        const [ comment, setComment ] = useState({
+            username: '',
+            comment: ''
+        });
 
-    const game = games.find(x => x._id == gameId);
+        const [ error, setError] = useState({
+            username: '',
+            comment: ''
+        });
 
-    const addCommentHandler = (e) => {
-        e.preventDefault();
-        addComment(gameId, `${comment.username}: ${comment.comment}`)
-    }
+        const game = games.find(x => x._id == gameId);
 
-    const onChange = (e) => {
-        
-        setComment(state => ({
-            ...state,
-            [e.target.name]: e.target.value
-        }))
+        const addCommentHandler = (e) => {
+            e.preventDefault();
+            addComment(gameId, `${comment.username}: ${comment.comment}`)
+        }
+
+        const onChange = (e) => {
+            
+            setComment(state => ({
+                ...state,
+                [e.target.name]: e.target.value
+            }))
+        }
+
+        const validateUserName = (e) => {
+            const value = e.target.value;     
+            
+            if(value.length < 3){
+            
+                setError(state => ({
+                    ...state,
+                    username: `Username must be more than 3 symbols long`
+            }));
+        }
     }
 
     return (
@@ -75,8 +93,13 @@ export const Details = ({
                         type="username"
                         placeholder="Username......"
                         onChange={onChange}
+                        onBlur={validateUserName}
                         value={comment.username}
                     />
+                    {error.username &&
+                        <div style={{color: "red"}}>{error.username}</div>
+                    }
+                    
                     <textarea
                         name="comment"
                         placeholder="Comment......"
