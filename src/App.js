@@ -15,6 +15,21 @@ import './App.css';
 function App() {
     const [games, setGames] = useState([]);
 
+    const addComment = ( gameId,comment) => {
+        setGames( state => {
+            const game = state.find(x => x._id == gameId);
+
+            const comments = game.comments || [];
+            comments.push(comment);
+            
+ //когато променяме state правим нова референция и връщаме чисто нов state с актуалните коментари
+            return [
+                ...state.filter(x => x._id !== gameId),
+                {...game, comments}
+            ]
+        })
+    }
+
     useEffect(() => {
         gameService.getAll()
         .then(result => {
@@ -32,8 +47,8 @@ function App() {
                     <Route path="/register" element={< Register />}/>
                     <Route path="/create" element={< CreateGame />}/>
                     <Route path="/create" element={< EditGame />}/>
-                    <Route path="/details" element={< Details />}/>
                     <Route path="/catalog" element={< Catalog games={games}/>}/>
+                    <Route path="/catalog/:gameId" element={< Details games={games} addComment={addComment} />}/>
                 </Routes>
             </main>
             
