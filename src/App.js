@@ -17,11 +17,12 @@ import { Details } from './components/Details/Details';
 import './App.css';
 
 import { Register } from './components/Register/Register';
+import { useLocalStorage } from './hooks/useLocalStorage';
 
 //const Register = lazy(() => import('./components/Register/Register')); // връща Promise когато бъде поискано
 function App() {
     const [games, setGames] = useState([]);
-    const [auth, setAuth] =  useState({});
+    const [auth, setAuth] =  useLocalStorage('auth',{});
     const navigate = useNavigate();
 
     const userLogin = (authData) => {
