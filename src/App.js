@@ -1,21 +1,37 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useState, lazy, Suspense} from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import * as gameService from './services/gameService';
 import  uniqid from 'uniqid';
 
+import { AuthContext } from './context/AuthContext';
+
 import { Header } from './components/Header/Header';
 import { Home } from './components/Home/Home';
 import { Login } from './components/Login/Login';
-import { Register } from './components/Register/Register';
+import { Logout } from './components/Logout/Logout';
+
 import { CreateGame } from './components/CreateGame/CreateGame';
 import { EditGame } from './components/EditGame/EditGame';
 import { Catalog } from './components/Catalog/Catalog';
 import { Details } from './components/Details/Details';
 import './App.css';
 
+import { Register } from './components/Register/Register';
+
+//const Register = lazy(() => import('./components/Register/Register')); // връща Promise когато бъде поискано
 function App() {
     const [games, setGames] = useState([]);
+    const [auth, setAuth] =  useState({});
     const navigate = useNavigate();
+
+    const userLogin = (authData) => {
+        setAuth(authData);
+    }
+
+    const userLogout = () => {
+        setAuth({});
+    }
+
     const addComment = ( gameId,comment) => {
         setGames( state => {
             const game = state.find(x => x._id == gameId);
@@ -52,37 +68,41 @@ function App() {
     },[]);
 
     return (
-        <div id="box">
-            < Header />
-            {/* Main Content */}
-            <main id="main-content">
-                <Routes>
-                    <Route path="/" element={< Home games={games}/>}/>
-                    <Route path="/login" element={< Login />}/>
-                    <Route path="/register" element={< Register />}/>
-                    <Route path="/create" element={< CreateGame addGamesHandler={addGamesHandler}/>}/>
-                    <Route path="/create" element={< EditGame />}/>
-                    <Route path="/catalog" element={< Catalog games={games}/>}/>
-                    <Route path="/catalog/:gameId" element={< Details games={games} addComment={addComment} />}/>
-                </Routes>
-            </main>
-            
-            
-            {/* Login Page ( Only for Guest users ) */}
-            
-            {/* Register Page ( Only for Guest users ) */}
-            
-            {/* Create Page ( Only for logged-in users ) */}
-            
-            {/* Edit Page ( Only for the creator )*/}
-            
-            {/*Details Page*/}
-            
-            {/* Catalogue */}
-            
-        </div>
+        <AuthContext.Provider value={{user: auth, userLogin, userLogout}}>
+            <div id="box">
+                < Header />
+                {/* Main Content */}
+                <main id="main-content">
+                    <Routes>
+                        <Route path="/" element={< Home games={games}/>}/>
+                        <Route path="/login" element={< Login />}/>
+                        <Route path="/register" element={<Suspense callback={<span>Loading...</span>}>
+                                                            < Register />
+                                                        </Suspense>}/>
+                        <Route path="/logout" element={< Logout />}/>                                
+                        <Route path="/create" element={< CreateGame addGamesHandler={addGamesHandler}/>}/>
+                        <Route path="/create" element={< EditGame />}/>
+                        <Route path="/catalog" element={< Catalog games={games}/>}/>
+                        <Route path="/catalog/:gameId" element={< Details games={games} addComment={addComment} />}/>
+                    </Routes>
+                </main>
+                
+                
+                {/* Login Page ( Only for Guest users ) */}
+                
+                {/* Register Page ( Only for Guest users ) */}
+                
+                {/* Create Page ( Only for logged-in users ) */}
+                
+                {/* Edit Page ( Only for the creator )*/}
+                
+                {/*Details Page*/}
+                
+                {/* Catalogue */}
+                
+            </div>
+        </AuthContext.Provider>
     );
-
 }
 
 export default App;
