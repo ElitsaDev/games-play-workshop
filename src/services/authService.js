@@ -13,7 +13,7 @@ export const logout = async (accessToken) => {
                 }
         });
         //request.get(`${baseUrl}/logout`);
-        localStorage.clear();
+        
         return response;
 
     }catch(err){

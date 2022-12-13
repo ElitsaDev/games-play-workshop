@@ -1,14 +1,16 @@
-import {useEffect, useState, lazy, Suspense} from 'react';
-import { Route, Routes, useNavigate } from 'react-router-dom';
-import * as gameService from './services/gameService';
-import  uniqid from 'uniqid';
+import { Suspense} from 'react';
+import { Route, Routes} from 'react-router-dom';
 
-import { AuthContext } from './context/AuthContext';
+//import  uniqid from 'uniqid'; може да кажем npm remove uniqid
+
+import { AuthProvider } from './context/AuthContext';
+import { GameProvider } from './context/GameContext';
 
 import { Header } from './components/Header/Header';
 import { Home } from './components/Home/Home';
 import { Login } from './components/Login/Login';
 import { Logout } from './components/Logout/Logout';
+
 
 import { CreateGame } from './components/CreateGame/CreateGame';
 import { EditGame } from './components/EditGame/EditGame';
@@ -16,78 +18,33 @@ import { Catalog } from './components/Catalog/Catalog';
 import { Details } from './components/Details/Details';
 import './App.css';
 
-import { Register } from './components/Register/Register';
-import { useLocalStorage } from './hooks/useLocalStorage';
+import Register from './components/Register/Register';
+
 
 //const Register = lazy(() => import('./components/Register/Register')); // връща Promise когато бъде поискано
 function App() {
-    const [games, setGames] = useState([]);
-    const [auth, setAuth] =  useLocalStorage('auth',{});
-    const navigate = useNavigate();
-
-    const userLogin = (authData) => {
-        setAuth(authData);
-    }
-
-    const userLogout = () => {
-        setAuth({});
-    }
-
-    const addComment = ( gameId,comment) => {
-        setGames( state => {
-            const game = state.find(x => x._id == gameId);
-
-            const comments = game.comments || [];
-            comments.push(comment);
-            
- //когато променяме state правим нова референция и връщаме чисто нов state с актуалните коментари
-            return [
-                ...state.filter(x => x._id !== gameId),
-                {...game, comments}
-            ]
-        })
-    };
-
-    const addGamesHandler = (gameData) =>{
-        setGames(state => [
-           ...state,
-            
-            {
-                ...gameData,
-                _id: uniqid()
-            } 
-        ]);
-
-        navigate('/catalog');
-    }
-
-    useEffect(() => {
-        gameService.getAll()
-        .then(result => {
-            setGames(result);
-        })
-    },[]);
-
+    
     return (
-        <AuthContext.Provider value={{user: auth, userLogin, userLogout}}>
+        <AuthProvider>
             <div id="box">
                 < Header />
                 {/* Main Content */}
+                <GameProvider>
                 <main id="main-content">
                     <Routes>
-                        <Route path="/" element={< Home games={games}/>}/>
+                        <Route path="/" element={< Home />}/>
                         <Route path="/login" element={< Login />}/>
                         <Route path="/register" element={<Suspense callback={<span>Loading...</span>}>
                                                             < Register />
                                                         </Suspense>}/>
                         <Route path="/logout" element={< Logout />}/>                                
-                        <Route path="/create" element={< CreateGame addGamesHandler={addGamesHandler}/>}/>
-                        <Route path="/create" element={< EditGame />}/>
-                        <Route path="/catalog" element={< Catalog games={games}/>}/>
-                        <Route path="/catalog/:gameId" element={< Details games={games} addComment={addComment} />}/>
+                        <Route path="/create" element={< CreateGame />}/>
+                        <Route path="/games/:gameId/edit" element={< EditGame />}/>
+                        <Route path="/catalog" element={< Catalog />}/>
+                        <Route path="/catalog/:gameId" element={< Details />}/>
                     </Routes>
                 </main>
-                
+                </GameProvider>
                 
                 {/* Login Page ( Only for Guest users ) */}
                 
@@ -102,7 +59,7 @@ function App() {
                 {/* Catalogue */}
                 
             </div>
-        </AuthContext.Provider>
+        </AuthProvider>
     );
 }
 
