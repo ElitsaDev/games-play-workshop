@@ -34,7 +34,7 @@ export const useAuthContext = () => {
 export const withAuth = (Component) => {
     const WrapperComponent = (props) => {
         const context = useContext(AuthContext);
-        return <Component {...props} auth={context}/>
+        return <Component {...props} auth={context} />
     }
     return WrapperComponent;
 }

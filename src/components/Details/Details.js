@@ -1,54 +1,46 @@
 import { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { GameContext } from "../../context/GameContext";
 import * as gameService from '../../services/gameService';
+import * as commentService from '../../services/commentService';
 
 export const Details = () => {
-        const { addComment } = useContext(GameContext);
+        const navigate = useNavigate();
+        const { addComment, removeGame } = useContext(GameContext);
         const { gameId } = useParams();
         const [ currentGame, setCurrentGame] = useState({});
-        const [ comment, setComment ] = useState({
-            username: '',
-            comment: ''
-        });
+
 
         useEffect(() =>{
             gameService.getOneGame(gameId)
             .then(result => {
                 setCurrentGame(result);
             })
-        })
-
-        const [ error, setError] = useState({
-            username: '',
-            comment: ''
-        });
+        }, [])
 
         const addCommentHandler = (e) => {
             e.preventDefault();
-            addComment(gameId, `${comment.username}: ${comment.comment}`)
+
+            const formData = new FormData(e.target);
+            const comment = formData.get('comment');
+
+            commentService.create(gameId, comment)
+            .then(result => {
+                addComment(gameId, comment);
+            }) 
         }
 
-        const onChange = (e) => {
-            
-            setComment(state => ({
-                ...state,
-                [e.target.name]: e.target.value
-            }))
+        const gameDeleteHandler = () => {
+           const confirmation = window.confirm('Are you sure you want to delete this game?');
+            if(confirmation){
+                gameService.deleteGame(gameId)
+                .then(() =>{
+                    removeGame(gameId);
+                    navigate('/catalog');
+                });   
+            }
         }
-
-        const validateUserName = (e) => {
-            const value = e.target.value;     
-            
-            if(value.length < 3){
-            
-                setError(state => ({
-                    ...state,
-                    username: `Username must be more than 3 symbols long`
-            }));
-        }
-    }
 
     return (
         <section id="game-details">
@@ -84,34 +76,20 @@ export const Details = () => {
                     <Link to={`/games/${gameId}/edit`} className="button">
                         Edit
                     </Link>
-                    <a href="#" className="button"> 
+                    <button onClick={gameDeleteHandler} className="button"> 
                         Delete
-                    </a>
+                    </button>
                 </div>
             </div>
             {/* Bonus */}
             {/* Add Comment ( Only for logged-in users, which is not creators of the current game ) */}
           
-           {/* <article className="create-comment">
+            <article className="create-comment">
                 <label>Add new comment:</label>
                 <form className="form" onSubmit={addCommentHandler}>
-                    <input
-                        name="username"
-                        type="username"
-                        placeholder="Username......"
-                        onChange={onChange}
-                        onBlur={validateUserName}
-                        value={comment.username}
-                    />
-                    {error.username &&
-                        <div style={{color: "red"}}>{error.username}</div>
-                    }
-                    
                     <textarea
                         name="comment"
                         placeholder="Comment......"
-                        onChange={onChange}
-                        value={comment.comment}
                     />
                     <input
                         className="btn submit"
@@ -119,7 +97,7 @@ export const Details = () => {
                         value="Add Comment"
                 />
                 </form>
-            </article>*/}
+            </article>
         </section>
     );
 }
